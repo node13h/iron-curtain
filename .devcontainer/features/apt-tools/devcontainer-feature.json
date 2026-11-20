@@ -1,0 +1,7 @@
+{
+  "id": "apt-tools",
+  "version": "1.0.0",
+  "name": "APT developer tools",
+  "description": "Installs command-line tools from Debian packages.",
+  "options": {}
+}

@@ -1,0 +1,10 @@
+{
+  "id": "mermaid-cli",
+  "version": "1.0.0",
+  "name": "MermaidJS",
+  "description": "Installs MermaidJS CLI. Versions are pinned in package-lock.json (regenerate with `make lock`).",
+  "options": {},
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/node:2"
+  ]
+}

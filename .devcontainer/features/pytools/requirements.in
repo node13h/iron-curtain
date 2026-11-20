@@ -1,0 +1,6 @@
+poetry==2.5.1
+pytest==9.2.0
+mypy==2.4.1
+pip-tools==7.6.2
+ruff==0.17.5
+uv==0.13.8

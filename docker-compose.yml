@@ -1,0 +1,257 @@
+# yamllint disable rule:line-length
+---
+name: iron-curtain
+services:
+  agentgateway:
+    image: "${GHCR_REGISTRY:-ghcr.io}/agentgateway/agentgateway:v1.7.0@sha256:60216aafb03d37f94e952ff3d51d2f630a65b10ecaebdc0a864882f92610c45b"
+    depends_on:
+      agentgateway-init:
+        condition: service_healthy
+      agentgateway-init-users:
+        condition: service_completed_successfully
+      egress-proxy:
+        condition: service_started
+    volumes:
+      - agentgateway-config:/config
+      - agentgateway-data:/data
+    network_mode: "service:agentgateway-init"
+    command:
+      - "-f"
+      - "/config/config.yaml"
+    restart: unless-stopped
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+  agentgateway-ingress:
+    image: "${DHI_REGISTRY:-dhi.io}/socat:1-alpine@sha256:47496cd4dd598c75e6e8d0bc1aa8090ba9296d73009940b1087475f049f1db02"
+    depends_on:
+      agentgateway:
+        condition: service_started
+    ports:
+      - '127.0.0.1:4001:4001'
+    networks:
+      intra:
+        interface_name: eth0
+      default:
+        interface_name: eth1
+    command:
+      - "TCP-LISTEN:4001,so-bindtodevice=eth1,fork,reuseaddr"
+      - "TCP:agentgateway:4001"
+    restart: unless-stopped
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 32m
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+  # This container initializes permissions and agentgateway config
+  # then sleeps indefinitely. Sleep is necessary as it's the network
+  # namespace provider for the agentgateway container.
+  agentgateway-init:
+    image: "${DOCKER_HUB_REGISTRY:-docker.io}/mikefarah/yq:4@sha256:5d56494617dce8311106e905aac5c080a2087c905a7f7de2984db2e2cc60ab2e"
+    volumes:
+      - ./agentgateway/init-and-sleep.sh:/init-and-sleep.sh
+      - ./agentgateway/default-config.yaml:/default-config.yaml:ro
+      - agentgateway-config:/config
+      - agentgateway-data:/data
+    environment:
+      AG_UID: "65532"
+      AG_GID: "65532"
+      WEB_UI_IF: eth0
+      API_IF: eth1
+      EXPOSE_API_ON_ALL_INTERFACES: "${EXPOSE_API_ON_ALL_INTERFACES:-1}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
+      OMLX_API_KEY: "${OMLX_API_KEY}"
+    networks:
+      intra:
+        interface_name: eth0
+        aliases:
+          - agentgateway
+      agents:
+        interface_name: eth1
+        aliases:
+          - agentgateway
+    command:
+      - /init-and-sleep.sh
+    entrypoint:
+      - /bin/sh
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/ready"]
+      interval: 1s
+      timeout: 1s
+      retries: 30
+    user: "0:0"
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 64m
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+  agentgateway-init-users:
+    image: "${DHI_REGISTRY:-dhi.io}/httpd:2@sha256:f4d5b256132cbb8dee7432436683327008cc0d93fdc3d0c6cf776aee237c00ab"
+    depends_on:
+      agentgateway-init:
+        condition: service_healthy
+    volumes:
+      - agentgateway-config:/config
+    environment:
+      AGENTGATEWAY_UI_PASSWORD: "${AGENTGATEWAY_UI_PASSWORD}"
+    command:
+      - "-euc"
+      - "htpasswd -c -b -B /config/htpasswd admin $${AGENTGATEWAY_UI_PASSWORD}"
+    entrypoint:
+      - /usr/bin/sh
+    restart: "no"
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 32m
+    security_opt:
+      - no-new-privileges:true
+  devpi:
+    build: ./docker-devpi
+    depends_on:
+      devpi-init:
+        condition: service_completed_successfully
+      egress-proxy:
+        condition: service_started
+    volumes:
+      - devpi-data:/data
+    environment:
+      DEVPI_LISTEN_IFACE: eth0
+      DEVPI_INITIAL_ROOT_PASSWORD: "${DEVPI_INITIAL_ROOT_PASSWORD}"
+      http_proxy: http://egress-proxy:3128
+      https_proxy: http://egress-proxy:3128
+      HTTP_PROXY: http://egress-proxy:3128
+      HTTPS_PROXY: http://egress-proxy:3128
+    networks:
+      agents:
+        interface_name: eth0
+      intra:
+        interface_name: eth1
+    restart: unless-stopped
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    profiles:
+      - python
+      - all
+    security_opt:
+      - no-new-privileges:true
+  devpi-init:
+    image: "${DHI_REGISTRY:-dhi.io}/busybox:1@sha256:248d31f729ad573962a7a892f0725f45029eaf4a345e397d13f33823b5555ad6"
+    volumes:
+      - devpi-data:/data
+    command:
+      - "-euc"
+      - "chown 65532:65532 /data"
+    entrypoint:
+      - /bin/sh
+    user: "0:0"
+    cap_add:
+      - CHOWN
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 32m
+    profiles:
+      - python
+      - all
+    security_opt:
+      - no-new-privileges:true
+  egress-proxy:
+    image: "${DHI_REGISTRY:-dhi.io}/envoy:1@sha256:7d52175ba1a24b6e380e45e1724d7de1164f17d111bbcafc80aceccbd0b5ff7d"
+    volumes:
+      - ./egress-proxy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    networks:
+      intra:
+        interface_name: eth0
+      default:
+        interface_name: eth1
+    command:
+      - envoy
+      - --config-path
+      - /etc/envoy/envoy.yaml
+    restart: unless-stopped
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    security_opt:
+      - no-new-privileges:true
+  verdaccio:
+    image: "${DOCKER_HUB_REGISTRY:-docker.io}/verdaccio/verdaccio:7.1@sha256:c826ec44b4f7bf6512b0362c5f6f199bbdc8c4348410ced7fdb7fc62f52f477e"
+    volumes:
+      - ./verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
+      - verdaccio-storage:/verdaccio/storage
+      - verdaccio-plugins:/verdaccio/plugins
+    environment:
+      http_proxy: http://egress-proxy:3128
+      https_proxy: http://egress-proxy:3128
+      HTTP_PROXY: http://egress-proxy:3128
+      HTTPS_PROXY: http://egress-proxy:3128
+    networks:
+      agents:
+        interface_name: eth0
+      intra:
+        interface_name: eth1
+    restart: unless-stopped
+    user: "10001:65533"
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    profiles:
+      - js
+      - all
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+networks:
+  default:
+  intra:
+    internal: true
+  agents:
+    internal: true
+volumes:
+  agentgateway-config:
+  agentgateway-data:
+  devpi-data:
+  verdaccio-storage:
+  verdaccio-plugins:

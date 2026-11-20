@@ -1,0 +1,30 @@
+---
+storage: /verdaccio/storage/data
+plugins: /verdaccio/plugins
+server:
+  keepAliveTimeout: 60
+web:
+  enable: false
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    timeout: 30s
+    maxage: 10m
+    cache: true
+packages:
+  "**":
+    access: $all
+    publish: nobody
+    unpublish: nobody
+    proxy: npmjs
+middlewares:
+  audit:
+    enabled: true
+userRateLimit:
+  windowMs: 60000
+  max: 1000
+max_body_size: 10mb
+logs:
+  type: stdout
+  format: json
+  level: http

@@ -25,46 +25,49 @@ prompt injection. iron-curtain limits what such code can reach and where it can 
 
 ```mermaid
 flowchart LR
-    subgraph agents["agents network (internal, no Internet)"]
-        dev["your dev container"]
-    end
+    dev["your <b>dev container</b>"]
 
-    subgraph both["on both agents and intra networks"]
-        gw["agentgateway<br/>:4000 API · :4001 web UI"]
-        devpi["devpi :3141<br/>(PyPI mirror, optional)"]
-        verdaccio["verdaccio :4873<br/>(npmjs mirror, optional)"]
-    end
+    net_agents{{"<b>agents network</b><br/>(internal, no Internet)"}}
 
-    subgraph intra["intra network (internal, no Internet)"]
-        egress["egress-proxy :3128<br/>(Envoy, allowlist only)"]
-        ingress["agentgateway-ingress"]
-    end
+    gw["<b>agentgateway</b><br/>:4000 API · :4001 web UI"]
+    devpi["<b>devpi</b> :3141<br/>(PyPI mirror, optional)"]
+    verdaccio["<b>verdaccio</b> :4873<br/>(npmjs mirror, optional)"]
 
-    subgraph outside["outside the stack"]
-        internet["api.anthropic.com<br/>pypi.org, files.pythonhosted.org<br/>registry.npmjs.org"]
-        hostllm["host.docker.internal<br/>(local LLMs: Ollama / oMLX)"]
-        browser["your browser<br/>127.0.0.1:4001"]
-    end
+    net_intra{{"<b>intra network</b><br/>(internal, no Internet)"}}
 
-    dev -->|LLM requests| gw
-    dev -->|pip install| devpi
-    dev -->|npm install| verdaccio
-    gw --> egress
-    devpi --> egress
-    verdaccio --> egress
-    egress --> internet
-    egress --> hostllm
-    browser --> ingress
-    ingress -->|web UI| gw
+    egress["<b>egress-proxy</b> :3128<br/>(Envoy, allowlist only)"]
+    ingress["<b>agentgateway-ingress</b><br/>127.0.0.1:4001"]
+
+    net_default{{"<b>default network</b><br/>(Internet and host access)"}}
+
+    internet["api.anthropic.com<br/>pypi.org, files.pythonhosted.org<br/>registry.npmjs.org"]
+    hostllm["host.docker.internal<br/>(local LLMs: Ollama / oMLX)"]
+    browser["your browser"]
+
+    dev --- net_agents
+    net_agents --- gw
+    net_agents --- devpi
+    net_agents --- verdaccio
+    gw --- net_intra
+    devpi --- net_intra
+    verdaccio --- net_intra
+    net_intra --- egress
+    net_intra --- ingress
+    egress --- net_default
+    ingress --- net_default
+    net_default --- internet
+    net_default --- hostllm
+    net_default --- browser
 ```
 
-- **Agents network (`iron-curtain_agents`):** an internal Docker network with no Internet
-  access. Your dev container joins this network. Only agentgateway and the package mirrors
+- **agents network (`iron-curtain_agents`):** an internal Docker network with no Internet
+  access. Your **dev container** joins this network. Only agentgateway and the package mirrors
   (devpi, verdaccio) are reachable from it.
-- **Intra network:** a second internal network that connects the services to each other.
-  Never attach dev containers to it. Only two services are also connected to the outside: the
-  egress-proxy (for outbound traffic) and agentgateway-ingress (which publishes the web UI on
-  `127.0.0.1:4001` on the host).
+- **intra network:** a second internal network that connects the services to each other.
+  Never attach dev containers to it. Only two services are also attached to the
+- **default network**, which can reach the Internet and the host: the egress-proxy (for
+  outbound traffic) and
+- **agentgateway-ingress** which publishes the web UI on `127.0.0.1:4001` on the host.
 - **[agentgateway](https://agentgateway.dev/):** the LLM gateway. From the agents network it is
   at `http://agentgateway:4000`. It routes requests by model-name prefix:
   - `anthropic/<model>` goes to the Anthropic API, using the gateway's `ANTHROPIC_API_KEY`
@@ -72,10 +75,10 @@ flowchart LR
     sent by the client (see [Anthropic API using a Claude subscription (Pro/Max)](#anthropic-api-using-a-claude-subscription-promax))
   - `ollama/<model>` goes to Ollama on the host (port 11434)
   - `omlx/<model>` goes to oMLX on the host (port 8000)
-- **devpi (optional):** a local PyPI mirror that fetches packages from public PyPI on
+- **devpi** (optional): a local PyPI mirror that fetches packages from public PyPI on
   demand. From the agents network it is at `http://devpi:3141/root/pypi/+simple/`. Enable it
   with the `python` Compose profile.
-- **verdaccio (optional):** a local mirror of the public npm registry. From the agents network
+- **verdaccio** (optional): a local mirror of the public npm registry. From the agents network
   it is at `http://verdaccio:4873`. Enable it with the `js` Compose profile.
 - **egress-proxy:** agentgateway, devpi and verdaccio cannot reach the Internet directly. All
   of their outbound traffic goes through an Envoy proxy that allows only the hosts shown in the

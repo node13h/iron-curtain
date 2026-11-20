@@ -1,0 +1,51 @@
+{
+  "name": "python-dev",
+  "image": "debian:trixie",
+  "remoteUser": "developer",
+  "runArgs": [
+    "--network=${localEnv:AGENTS_DOCKER_NETWORK_NAME:iron-curtain_agents}"
+  ],
+  "containerEnv": {
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "remoteEnv": {
+    "ANTHROPIC_BASE_URL": "http://agentgateway:4000",
+    "ANTHROPIC_AUTH_TOKEN": "${localEnv:ANTHROPIC_AUTH_TOKEN:dummy}",
+    "ANTHROPIC_DEFAULT_MODEL": "${localEnv:ANTHROPIC_DEFAULT_MODEL}",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "${localEnv:ANTHROPIC_DEFAULT_SONNET_MODEL:claude/claude-sonnet-5-5}",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "${localEnv:ANTHROPIC_DEFAULT_OPUS_MODEL:claude/claude-opus-5-5}",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "${localEnv:ANTHROPIC_DEFAULT_HAIKU_MODEL:claude/claude-haiku-5-5}",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "${localEnv:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC:1}",
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "${localEnv:CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS:1}",
+    "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "${localEnv:CLAUDE_CODE_DISABLE_TERMINAL_TITLE}",
+    "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "${localEnv:CLAUDE_CODE_MAX_CONTEXT_TOKENS}",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "${localEnv:CLAUDE_CODE_MAX_OUTPUT_TOKENS}",
+    "API_TIMEOUT_MS": "${localEnv:API_TIMEOUT_MS}",
+    "API_FORCE_IDLE_TIMEOUT": "${localEnv:API_FORCE_IDLE_TIMEOUT}",
+    "MAX_THINKING_TOKENS": "${localEnv:MAX_THINKING_TOKENS}",
+    "DISABLE_AUTOUPDATER": "1",
+    "PIP_INDEX_URL": "http://devpi:3141/root/pypi/+simple/",
+    "PIP_TRUSTED_HOST": "devpi",
+    "NPM_CONFIG_REGISTRY": "http://verdaccio:4873"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "developer",
+      "userUid": "1000",
+      "userGid": "1000",
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "upgradePackages": false
+    },
+    "./features/apt-tools": {},
+    "./features/yq": {},
+    "./features/hadolint": {},
+    "./features/dclint": {},
+    "./features/docker-cli": {},
+    "./features/pytools": {},
+    "ghcr.io/devcontainers/features/node:2": {},
+    "./features/mermaid-cli": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  }
+}

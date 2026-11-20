@@ -1,0 +1,10 @@
+{
+  "id": "pytools",
+  "version": "1.0.0",
+  "name": "Python developer tools",
+  "description": "Installs poetry, pytest, mypy and pip-tools into /opt/pytools. Versions are pinned in requirements.txt (regenerate with `make lock`).",
+  "options": {},
+  "installsAfter": [
+    "./features/apt-tools"
+  ]
+}

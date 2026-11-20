@@ -1,0 +1,26 @@
+{
+  "id": "yq",
+  "version": "1.0.0",
+  "name": "yq",
+  "description": "Installs mikefarah/yq from GitHub releases.",
+  "options": {
+    "yqVersion": {
+      "type": "string",
+      "default": "4.54.3",
+      "description": "yq version to install (without the leading v)"
+    },
+    "sha256Amd64": {
+      "type": "string",
+      "default": "129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973",
+      "description": "SHA-256 of the yq amd64 binary for the selected version (required on amd64)"
+    },
+    "sha256Arm64": {
+      "type": "string",
+      "default": "89f69310b61b68d1245065a1241d1fc843f7a36cd6103ffd77ad987613bd1b67",
+      "description": "SHA-256 of the yq arm64 binary for the selected version (required on arm64)"
+    }
+  },
+  "installsAfter": [
+    "./features/apt-tools"
+  ]
+}

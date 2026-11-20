@@ -1,0 +1,26 @@
+{
+  "id": "dclint",
+  "version": "1.0.0",
+  "name": "dclint",
+  "description": "Installs the dclint Dockerfile Compose linter from GitHub releases.",
+  "options": {
+    "dclintVersion": {
+      "type": "string",
+      "default": "3.1.0",
+      "description": "dclint version to install (without the leading v)"
+    },
+    "sha256Amd64": {
+      "type": "string",
+      "default": "5834586af5d3a5d3721dbb781cd87b4193e498f53671562864ca15567d1d42ac",
+      "description": "SHA-256 of the dclint amd64 binary for the selected version (required on amd64)"
+    },
+    "sha256Arm64": {
+      "type": "string",
+      "default": "ea58b5392e8c47c849b93028455d6df1a711b361ef49a870defa6b77b178e8ff",
+      "description": "SHA-256 of the dclint arm64 binary for the selected version (required on arm64)"
+    }
+  },
+  "installsAfter": [
+    "./features/apt-tools"
+  ]
+}

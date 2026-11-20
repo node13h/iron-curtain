@@ -1,0 +1,10 @@
+{
+  "id": "docker-cli",
+  "version": "1.0.0",
+  "name": "Docker CLI",
+  "description": "Installs Docker command-line client.",
+  "options": {},
+  "installsAfter": [
+    "./features/apt-tools"
+  ]
+}

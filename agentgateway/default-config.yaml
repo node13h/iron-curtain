@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://agentgateway.dev/schema/config
+---
+config:
+  database:
+    url: "sqlite:///data/data.db"
+gateways:
+  web_ui:
+    port: 4001
+  api:
+    port: 4000
+ui:
+  gateways: web_ui
+  policies:
+    basicAuth:
+      mode: strict
+      htpasswd:
+        file: /config/htpasswd
+      realm: agentgateway
+llm:
+  gateways:
+    - web_ui
+    - api
+  models:
+    - name: ollama/*
+      provider: ollama
+      params:
+        baseUrl: http://host.docker.internal:11434/v1
+      backendTunnel:
+        mode: connect
+        proxy:
+          host: egress-proxy:3128
+      transformation:
+        model: llmRequest.model.stripPrefix("ollama/")
+    - name: anthropic/*
+      provider: anthropic
+      backendTunnel:
+        mode: connect
+        proxy:
+          host: egress-proxy:3128
+      transformation:
+        model: llmRequest.model.stripPrefix("anthropic/")
+    - name: claude/*
+      provider: anthropic
+      backendTunnel:
+        mode: connect
+        proxy:
+          host: egress-proxy:3128
+      transformation:
+        model: llmRequest.model.stripPrefix("claude/")
+    - name: omlx/*
+      provider: anthropic
+      params:
+        baseUrl: http://host.docker.internal:8000/v1
+      backendTunnel:
+        mode: connect
+        proxy:
+          host: egress-proxy:3128
+      transformation:
+        model: llmRequest.model.stripPrefix("omlx/")
+frontendPolicies:
+  accessLog:
+    database:
+      llm: full

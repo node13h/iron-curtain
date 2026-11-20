@@ -1,0 +1,26 @@
+{
+  "id": "hadolint",
+  "version": "1.0.0",
+  "name": "hadolint",
+  "description": "Installs the hadolint Dockerfile linter from GitHub releases.",
+  "options": {
+    "hadolintVersion": {
+      "type": "string",
+      "default": "2.15.1",
+      "description": "hadolint version to install (without the leading v)"
+    },
+    "sha256Amd64": {
+      "type": "string",
+      "default": "c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507",
+      "description": "SHA-256 of the hadolint amd64 binary for the selected version (required on amd64)"
+    },
+    "sha256Arm64": {
+      "type": "string",
+      "default": "f6198ef8090f404dbb771abfee086eb8c48ac177f30da7fd3510aca35b344b5d",
+      "description": "SHA-256 of the hadolint arm64 binary for the selected version (required on arm64)"
+    }
+  },
+  "installsAfter": [
+    "./features/apt-tools"
+  ]
+}

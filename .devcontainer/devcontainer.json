@@ -25,6 +25,16 @@
     "API_FORCE_IDLE_TIMEOUT": "${localEnv:API_FORCE_IDLE_TIMEOUT}",
     "MAX_THINKING_TOKENS": "${localEnv:MAX_THINKING_TOKENS}",
     "DISABLE_AUTOUPDATER": "1",
+    "PI_OFFLINE": "${localEnv:PI_OFFLINE:1}",
+    "PI_SKIP_VERSION_CHECK": "1",
+    "PI_TELEMETRY": "0",
+    "PI_ENV_PROVIDER_BASE_URL": "http://agentgateway:4000",
+    "PI_ENV_PROVIDER_MODEL": "${localEnv:PI_ENV_PROVIDER_MODEL:omlx/Inkling-2-Mini-oQ4e-mtp}",
+    "PI_ENV_PROVIDER_REASONING": "${localEnv:PI_ENV_PROVIDER_REASONING:1}",
+    "PI_ENV_PROVIDER_API_KEY": "${localEnv:PI_ENV_PROVIDER_API_KEY:dummy}",
+    "PI_ENV_PROVIDER_CONTEXT_WINDOW": "${localEnv:PI_ENV_PROVIDER_CONTEXT_WINDOW}",
+    "PI_ENV_PROVIDER_MAX_TOKENS": "${localEnv:PI_ENV_PROVIDER_MAX_TOKENS}",
+    "PI_ANTHROPIC_MODEL_PREFIX": "${localEnv:ANTHROPIC_MODEL_PREFIX:claude/}",
     "PIP_INDEX_URL": "http://devpi:3141/root/pypi/+simple/",
     "PIP_TRUSTED_HOST": "devpi",
     "NPM_CONFIG_REGISTRY": "http://verdaccio:4873"
@@ -46,6 +56,7 @@
     "./features/pytools": {},
     "ghcr.io/devcontainers/features/node:2": {},
     "./features/mermaid-cli": {},
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
+    "./features/pi": {}
   }
 }

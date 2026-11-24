@@ -1,0 +1,11 @@
+{
+  "id": "pi",
+  "version": "1.0.0",
+  "name": "pi coding agent",
+  "description": "Installs the pi coding agent and an extension that routes it through agentgateway using the same environment variables as Claude Code. Versions are pinned in package-lock.json (regenerate with `make lock`).",
+  "options": {},
+  "installsAfter": [
+    "ghcr.io/devcontainers/features/common-utils:2",
+    "ghcr.io/devcontainers/features/node:2"
+  ]
+}
